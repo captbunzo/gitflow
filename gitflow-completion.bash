@@ -6,8 +6,8 @@ _gitflow_complete() {
     local cur prev words cword
     _init_completion || return
 
-    # Top-level commands (full names and aliases)
-    local commands="branch b pr p release r hotfix h tag t status s help ?"
+    # Top-level commands
+    local commands="branch pr release hotfix tag status help"
 
     # Subcommands for each command
     local branch_cmds="create delete feature fix release hotfix"
