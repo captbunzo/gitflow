@@ -1,0 +1,20 @@
+# GitFlow Configuration
+# Copy this file to .gitflowrc in your repository root to customize behavior
+
+# Package manager to use for versioning (npm, yarn, pnpm, bun, or none)
+# Set to 'none' for non-Node.js projects
+PACKAGE_MANAGER=bun
+
+# Enable semantic versioning for release/hotfix branches
+# Set to false for projects that don't use package.json versioning
+ENABLE_VERSIONING=true
+
+# Branch prefixes (optional, defaults shown)
+# FEATURE_PREFIX=feature
+# FIX_PREFIX=fix
+# RELEASE_PREFIX=release
+# HOTFIX_PREFIX=hotfix
+
+# Base branches (optional, defaults shown)
+# DEVELOP_BRANCH=develop
+# MAIN_BRANCH=main
