@@ -61,7 +61,7 @@ fi
 # Check for help flag
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|--help)
+        -h|--h|-help|--help|-\?|--\?)
             show_usage
             exit 0
             ;;
@@ -90,7 +90,7 @@ if [ -z "$subcommand" ]; then
     echo "B) Merge PR and cleanup"
     echo "Q) Quit"
     echo
-    read -p "Select an option: " choice
+    read -rp "Select an option: " choice
     echo
 
     case $choice in

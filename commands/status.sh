@@ -25,7 +25,7 @@ EOF
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|--help)
+        -h|--h|-help|--help|-\?|--\?)
             show_usage
             exit 0
             ;;

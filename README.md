@@ -1,13 +1,13 @@
 # GitFlow Automation
 
-Command-line tool for automating GitFlow workflows in the Professor Koa repository.
+Command-line tool for automating GitFlow workflows.
 
 ## Installation
 
 To install the `gitflow` command with bash completion:
 
 ```bash
-cd scripts/gitflow
+cd /path/to/gitflow
 ./install.sh
 source ~/.bashrc  # or open a new terminal
 ```
@@ -35,13 +35,12 @@ All commands support both full names and single-letter aliases for faster typing
 
 | Command | Alias | Description                                |
 | ------- | ----- | ------------------------------------------ |
-| branch  | b     | Create branch (feature/fix/release/hotfix) |
+| branch  | b     | Manage branches (create/delete)            |
 | pr      | p     | Manage pull requests (create/merge)        |
-| release | r     | Manage releases (rc/finalize)              |
-| hotfix  | h     | Manage hotfixes (finalize)                 |
+| release | r     | Manage releases (rc/ship)                  |
+| hotfix  | h     | Manage hotfixes (ship)                     |
 | tag     | t     | Tag production release                     |
 | status  | s     | View git status and open PRs               |
-| menu    | m     | Show interactive menu                      |
 | help    | ?     | Show help message                          |
 
 ### Branch Management
@@ -105,9 +104,9 @@ gitflow release rc 1.2.0 --rc 2  # Second RC
 # Create RC tag (alias)
 gitflow r rc 1.2.0
 
-# Finalize release (merge to main and develop)
-gitflow release finalize 1.2.0
-gitflow r finalize 1.2.0
+# Ship release (merge to main and develop, tag production)
+gitflow release ship 1.2.0
+gitflow r ship 1.2.0
 ```
 
 ### Hotfix Workflow
@@ -115,11 +114,11 @@ gitflow r finalize 1.2.0
 Manage hotfixes from main → staging → UAT → production:
 
 ```bash
-# Finalize hotfix (merge to main and develop) (full command)
-gitflow hotfix finalize 1.2.1
+# Ship hotfix (merge to main and develop, tag production) (full command)
+gitflow hotfix ship 1.2.1
 
-# Finalize hotfix (alias)
-gitflow h finalize 1.2.1
+# Ship hotfix (alias)
+gitflow h ship 1.2.1
 ```
 
 ### Production Tagging
@@ -178,14 +177,11 @@ Development:
 Release Management:
   E) Create release branch
   F) Create release candidate (RC) tag
-  G) Finalize release to production
+  G) Ship release to production
 
 Hotfix Management:
   H) Create hotfix branch
-  I) Finalize hotfix to production
-
-Production:
-  J) Tag production release
+  I) Ship hotfix to production
 
 Utilities:
   S) View status
@@ -223,11 +219,8 @@ gitflow b release 1.2.0
 # 3. Create RC tag (triggers UAT deployment) (with alias)
 gitflow r rc 1.2.0
 
-# 4. After UAT approval, finalize release (with alias)
-gitflow r finalize 1.2.0
-
-# 5. Tag production (triggers Production deployment) (with alias)
-gitflow t 1.2.0
+# 4. After UAT approval, ship release (with alias)
+gitflow r ship 1.2.0
 ```
 
 ### Hotfix Cycle
@@ -242,41 +235,42 @@ git add .
 git commit -m "Fix critical bug"
 git push
 
-# 3. Create RC tag (triggers UAT deployment) (with alias)
-gitflow r rc 1.2.1 --rc 1
-
-# 4. After UAT approval, finalize hotfix (with alias)
-gitflow h finalize 1.2.1
-
-# 5. Tag production (triggers Production deployment) (with alias)
-gitflow t 1.2.1
+# 3. After testing, ship hotfix (with alias)
+gitflow h ship 1.2.1
 ```
 
 ## File Structure
 
 ```
-scripts/gitflow/
+gitflow/
 ├── gitflow.sh              # Main entry point
+├── gitflow-completion.bash # Bash completion
+├── install.sh              # Installation script
+├── .gitflowrc.example      # Example configuration
 ├── README.md               # This file
+├── LICENSE                 # License file
 ├── lib/
-│   └── common.sh          # Shared utilities
+│   └── common.sh           # Shared utilities
 └── commands/
-    ├── branch.sh          # Branch creation
-    ├── pr.sh              # PR management (create, merge)
-    ├── release.sh         # Release workflow (rc, finalize)
-    ├── hotfix.sh          # Hotfix workflow (finalize)
-    ├── tag.sh             # Production tagging
-    └── status.sh          # Status view
+    ├── branch.sh           # Branch management (create, delete)
+    ├── pr.sh               # PR management (create, merge)
+    ├── release.sh          # Release workflow (rc, ship)
+    ├── hotfix.sh           # Hotfix workflow (ship)
+    ├── tag.sh              # Production tagging
+    └── status.sh           # Status view
 ```
 
 ## Requirements
 
 - Git
 - GitHub CLI (`gh`)
-- Bun (for `bun run gitflow`)
-- jq (for JSON parsing)
+- jq (optional, for JSON parsing in completions)
+- Node.js package manager (npm/yarn/pnpm/bun) if using versioning
 
-## See Also
+## Configuration
 
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Full GitFlow documentation
-- [GitHub Actions](.github/workflows/) - CI/CD pipeline details
+Copy `.gitflowrc.example` to `.gitflowrc` in your repository root to customize:
+
+- Package manager (npm/yarn/pnpm/bun/none)
+- Enable/disable versioning
+- Branch naming conventions

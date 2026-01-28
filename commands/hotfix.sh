@@ -51,7 +51,7 @@ fi
 # Check for help flag
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|--help)
+        -h|--h|-help|--help|-\?|--\?)
             show_usage
             exit 0
             ;;
@@ -73,7 +73,7 @@ if [ -z "$subcommand" ]; then
     echo "A) Ship hotfix to production"
     echo "Q) Quit"
     echo
-    read -p "Select an option: " choice
+    read -rp "Select an option: " choice
     echo
 
     case $choice in
@@ -103,7 +103,10 @@ case $subcommand in
             print_info "Detected version from branch: $version"
         fi
 
-        validate_version "$version"
+        if ! validate_version "$version"; then
+            print_error "Invalid version format: $version. Use semantic versioning (e.g., 1.2.1)"
+            exit 1
+        fi
 
         expected_branch="hotfix/v$version"
 
@@ -113,6 +116,10 @@ case $subcommand in
             print_info "Expected: $expected_branch"
             exit 1
         fi
+
+        # Fetch latest from remotes before merging
+        print_info "Fetching latest from origin..."
+        git fetch origin main develop --quiet
 
         print_info "Merging hotfix branch to main..."
         git checkout main

@@ -6,8 +6,8 @@ _gitflow_complete() {
     local cur prev words cword
     _init_completion || return
 
-    # Top-level commands
-    local commands="branch pr release hotfix tag status help"
+    # Top-level commands (full names and aliases)
+    local commands="branch b pr p release r hotfix h tag t status s help ?"
 
     # Subcommands for each command
     local branch_cmds="create delete feature fix release hotfix"
@@ -49,7 +49,7 @@ _gitflow_complete() {
             esac
             ;;
         3)
-            # Complete branch types or version numbers
+            # Complete branch types, version numbers, or branch names
             local subcmd="${words[2]}"
             case "$cmd" in
                 branch|b)
@@ -64,8 +64,17 @@ _gitflow_complete() {
                             ;;
                     esac
                     ;;
+                pr|p)
+                    case "$subcmd" in
+                        create|merge)
+                            # Suggest feature and fix branches
+                            local branches=$(git branch --format='%(refname:short)' 2>/dev/null | grep -E '^(feature|fix)/')
+                            COMPREPLY=($(compgen -W "$branches" -- "$cur"))
+                            ;;
+                    esac
+                    ;;
                 release|r)
-                    # Suggest version from package.json
+                    # Suggest version from package.json for both rc and ship
                     if [ -f package.json ] && command -v jq &>/dev/null; then
                         local version=$(jq -r '.version' package.json 2>/dev/null)
                         [ -n "$version" ] && COMPREPLY=("$version")
@@ -80,12 +89,26 @@ _gitflow_complete() {
                     ;;
             esac
             ;;
+        4)
+            # Handle options after version (e.g., release rc 1.2.0 --rc)
+            local subcmd="${words[2]}"
+            case "$cmd" in
+                release|r)
+                    if [ "$subcmd" = "rc" ]; then
+                        case "$cur" in
+                            -*)
+                                COMPREPLY=($(compgen -W "--rc -h --h -help --help" -- "$cur"))
+                                ;;
+                        esac
+                    fi
+                    ;;
+            esac
+            ;;
         *)
-            # Handle options
+            # Handle options anywhere
             case "$cur" in
                 -*)
-                    local opts="--help --rc"
-                    COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+                    COMPREPLY=($(compgen -W "-h --h -help --help" -- "$cur"))
                     ;;
             esac
             ;;

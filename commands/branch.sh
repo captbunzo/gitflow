@@ -315,7 +315,7 @@ fi
 # Check for help flag
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|help|-help|--help|usage|-usage|--usage)
+        -h|--h|-help|--help|-\?|--\?)
             show_usage
             exit 0
             ;;

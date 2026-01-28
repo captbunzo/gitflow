@@ -40,7 +40,7 @@ fi
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|--help)
+        -h|--h|-help|--help|-\?|--\?)
             show_usage
             exit 0
             ;;
@@ -70,11 +70,14 @@ fi
 if [ -z "$version" ]; then
     current_version=$(get_current_version)
     print_info "Current version: $current_version"
-    read -p "Enter version to tag [$current_version]: " input_version
+    read -rp "Enter version to tag [$current_version]: " input_version
     version="${input_version:-$current_version}"
 fi
 
-validate_version "$version"
+if ! validate_version "$version"; then
+    print_error "Invalid version format: $version. Use semantic versioning (e.g., 1.2.0)"
+    exit 1
+fi
 
 # Check if local main is up to date
 git fetch origin main --quiet
@@ -96,7 +99,7 @@ if git rev-parse "$release_tag" >/dev/null 2>&1; then
 fi
 
 print_warning "This will create tag $release_tag and trigger production deployment."
-read -p "Continue? [y/N]: " confirm
+read -rp "Continue? [y/N]: " confirm
 
 if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
     print_info "Cancelled"

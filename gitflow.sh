@@ -22,8 +22,8 @@ COMMANDS:
   p, pr SUBCOMMAND [OPTIONS]       Manage pull requests (create, merge)
   r, release SUBCOMMAND [OPTIONS]  Manage releases (rc, ship)
   h, hotfix SUBCOMMAND [OPTIONS]   Manage hotfixes (ship)
+  t, tag [VERSION]                 Tag production release
   s, status                        View git status and open PRs
-  m, menu                          Show interactive menu (default)
   ?, help                          Show this help message
 
 EXAMPLES:
@@ -106,6 +106,11 @@ execute_cli_command() {
             bash "$SCRIPT_DIR/commands/status.sh" "$@"
             ;;
 
+        # Tag
+        t|tag|-tag|--tag)
+            bash "$SCRIPT_DIR/commands/tag.sh" "$@"
+            ;;
+
         # Help
         help|-help|--help|-h|--h|-?|--?|usage|-usage|--usage)
             show_usage
@@ -185,19 +190,15 @@ execute_menu_command() {
     esac
 }
 
-# Interactive menu loop
+# Interactive menu (runs once)
 run_menu() {
-    while true; do
-        show_menu
-        read -rp "Enter choice: " choice
+    show_menu
+    read -rp "Enter choice: " choice
 
-        if execute_menu_command "$choice"; then
-            echo ""
-            read -rp "Press Enter to continue..."
-        else
-            print_error "Invalid choice. Please try again."
-        fi
-    done
+    if ! execute_menu_command "$choice"; then
+        print_error "Invalid choice."
+        exit 1
+    fi
 }
 
 # Main script

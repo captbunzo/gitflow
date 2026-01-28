@@ -64,7 +64,7 @@ while [[ $# -gt 0 ]]; do
             rc_number="$2"
             shift 2
             ;;
-        -h|--help)
+        -h|--h|-help|--help|-\?|--\?)
             show_usage
             exit 0
             ;;
@@ -87,7 +87,7 @@ if [ -z "$subcommand" ]; then
     echo "B) Ship release to production"
     echo "Q) Quit"
     echo
-    read -p "Select an option: " choice
+    read -rp "Select an option: " choice
     echo
 
     case $choice in
@@ -119,7 +119,10 @@ case $subcommand in
             print_info "Detected version from branch: $version"
         fi
 
-        validate_version "$version"
+        if ! validate_version "$version"; then
+            print_error "Invalid version format: $version. Use semantic versioning (e.g., 1.2.0)"
+            exit 1
+        fi
 
         expected_branch="release/v$version"
 
@@ -132,7 +135,7 @@ case $subcommand in
 
         # Get RC number if not provided
         if [ "$rc_number" = "1" ]; then
-            read -p "Enter RC number [1]: " input_rc
+            read -rp "Enter RC number [1]: " input_rc
             rc_number="${input_rc:-1}"
         fi
 
@@ -165,7 +168,10 @@ case $subcommand in
             print_info "Detected version from branch: $version"
         fi
 
-        validate_version "$version"
+        if ! validate_version "$version"; then
+            print_error "Invalid version format: $version. Use semantic versioning (e.g., 1.2.0)"
+            exit 1
+        fi
 
         expected_branch="release/v$version"
 
@@ -175,6 +181,10 @@ case $subcommand in
             print_info "Expected: $expected_branch"
             exit 1
         fi
+
+        # Fetch latest from remotes before merging
+        print_info "Fetching latest from origin..."
+        git fetch origin main develop --quiet
 
         print_info "Merging release branch to main..."
         git checkout main
