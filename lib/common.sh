@@ -263,8 +263,22 @@ prompt_switch_to_branch() {
     
     local selected_branch="${branch_array[$((choice-1))]}"
     
+    # Check for uncommitted changes before switching
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+        print_error "You have uncommitted changes that would be overwritten."
+        print_info "Please commit or stash your changes first:"
+        echo
+        git status --short
+        echo
+        print_info "Tip: Use 'git stash' to temporarily save changes"
+        return 1
+    fi
+    
     print_info "Switching to $selected_branch..."
-    git checkout "$selected_branch"
+    if ! git checkout "$selected_branch"; then
+        print_error "Failed to switch to $selected_branch"
+        return 1
+    fi
     
     print_success "Switched to $selected_branch"
     echo

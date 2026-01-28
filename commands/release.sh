@@ -139,13 +139,37 @@ case $subcommand in
             exit 1
         fi
 
-        # Get RC number if not provided
+        # Auto-detect the next RC number based on existing tags
+        # Find all existing RC tags for this version and get the highest number
+        existing_rcs=$(git tag -l "v${version}-rc.*" 2>/dev/null | sed "s/v${version}-rc\.//" | sort -n | tail -1)
+        if [ -n "$existing_rcs" ]; then
+            next_rc=$((existing_rcs + 1))
+        else
+            next_rc=1
+        fi
+
+        # Get RC number if not explicitly provided via --rc flag
         if [ "$rc_number" = "1" ]; then
-            read -rp "Enter RC number [1]: " input_rc
-            rc_number="${input_rc:-1}"
+            # Show existing RC tags if any
+            if [ -n "$existing_rcs" ]; then
+                print_info "Existing RC tags for v${version}:"
+                git tag -l "v${version}-rc.*" | sort -V | while read -r tag; do
+                    echo "       $tag"
+                done
+                echo
+            fi
+            read -rp "Enter RC number [$next_rc]: " input_rc
+            rc_number="${input_rc:-$next_rc}"
         fi
 
         rc_tag="v${version}-rc.${rc_number}"
+
+        # Check if this RC tag already exists
+        if git rev-parse "$rc_tag" >/dev/null 2>&1; then
+            print_error "Tag $rc_tag already exists!"
+            print_info "Use a different RC number or delete the existing tag first."
+            exit 1
+        fi
 
         print_info "Creating and pushing RC tag: $rc_tag"
         git tag "$rc_tag"
