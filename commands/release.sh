@@ -106,10 +106,16 @@ case $subcommand in
 
         # Validate we're on a release branch (check pattern first)
         if [[ ! "$current_branch" =~ ^release/v ]]; then
-            print_error "Not on a release branch."
+            print_warning "Not on a release branch."
             print_info "Current: $current_branch"
-            print_info "You must be on a release branch to create an RC tag"
-            exit 1
+            echo
+            
+            # Prompt to switch to a release branch
+            if prompt_switch_to_branch "release" "release branch"; then
+                current_branch=$(git branch --show-current)
+            else
+                exit 1
+            fi
         fi
 
         # Extract version from branch name if not provided
@@ -156,10 +162,16 @@ case $subcommand in
 
         # Validate we're on a release branch (check pattern first)
         if [[ ! "$current_branch" =~ ^release/v ]]; then
-            print_error "Not on a release branch."
+            print_warning "Not on a release branch."
             print_info "Current: $current_branch"
-            print_info "You must be on a release branch to ship"
-            exit 1
+            echo
+            
+            # Prompt to switch to a release branch
+            if prompt_switch_to_branch "release" "release branch"; then
+                current_branch=$(git branch --show-current)
+            else
+                exit 1
+            fi
         fi
 
         # Extract version from branch name if not provided

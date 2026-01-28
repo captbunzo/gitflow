@@ -91,10 +91,16 @@ case $subcommand in
 
         # Validate we're on a hotfix branch (check pattern first)
         if [[ ! "$current_branch" =~ ^hotfix/v ]]; then
-            print_error "Not on a hotfix branch."
+            print_warning "Not on a hotfix branch."
             print_info "Current: $current_branch"
-            print_info "You must be on a hotfix branch to ship"
-            exit 1
+            echo
+            
+            # Prompt to switch to a hotfix branch
+            if prompt_switch_to_branch "hotfix" "hotfix branch"; then
+                current_branch=$(git branch --show-current)
+            else
+                exit 1
+            fi
         fi
 
         # Extract version from branch name if not provided

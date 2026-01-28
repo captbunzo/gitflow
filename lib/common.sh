@@ -197,3 +197,77 @@ ensure_repo_root() {
         print_info "Set ENABLE_VERSIONING=false in .gitflowrc for non-Node projects"
     fi
 }
+
+# List branches matching a prefix, sorted by most recent commit (newest first)
+# Usage: list_branches_by_prefix "release" -> lists release/* branches
+list_branches_by_prefix() {
+    local prefix="$1"
+    git for-each-ref --sort=-committerdate --format='%(refname:short)' "refs/heads/${prefix}/*" 2>/dev/null
+}
+
+# Prompt user to select and switch to a branch from a list
+# Usage: prompt_switch_to_branch "release" "release branch"
+# Returns 0 if switched, 1 if no branches or user cancelled
+prompt_switch_to_branch() {
+    local prefix="$1"
+    local branch_type="$2"
+    
+    # Get list of branches
+    local branches
+    branches=$(list_branches_by_prefix "$prefix")
+    
+    if [ -z "$branches" ]; then
+        print_error "No ${branch_type}es found."
+        print_info "Create one first with: gitflow branch ${prefix}"
+        return 1
+    fi
+    
+    # Convert to array
+    local branch_array=()
+    while IFS= read -r branch; do
+        branch_array+=("$branch")
+    done <<< "$branches"
+    
+    local count=${#branch_array[@]}
+    
+    echo -e "${CYAN}Available ${branch_type}es (most recent first):${NC}"
+    echo
+    
+    local i=1
+    for branch in "${branch_array[@]}"; do
+        # Get the last commit date for context
+        local commit_date
+        commit_date=$(git log -1 --format='%cr' "$branch" 2>/dev/null || echo "unknown")
+        printf "  %d) %-30s ${BLUE}(%s)${NC}\n" "$i" "$branch" "$commit_date"
+        ((i++))
+    done
+    
+    echo
+    echo "  Q) Quit"
+    echo
+    
+    read -rp "Select a ${branch_type} to switch to: " choice
+    echo
+    
+    # Handle quit
+    if [[ "$choice" =~ ^[Qq]$ ]]; then
+        print_info "Cancelled."
+        return 1
+    fi
+    
+    # Validate selection
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "$count" ]; then
+        print_error "Invalid selection: $choice"
+        return 1
+    fi
+    
+    local selected_branch="${branch_array[$((choice-1))]}"
+    
+    print_info "Switching to $selected_branch..."
+    git checkout "$selected_branch"
+    
+    print_success "Switched to $selected_branch"
+    echo
+    
+    return 0
+}
