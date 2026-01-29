@@ -280,7 +280,15 @@ delete_branch() {
     # Delete remote branch if it exists
     if [ "$has_remote" = true ]; then
         print_info "Deleting remote branch..."
-        git push origin --delete "$branch_to_delete"
+        if git push origin --delete "$branch_to_delete" 2>&1 | grep -q "remote ref does not exist"; then
+            print_warning "Remote branch was already deleted"
+        elif [ ${PIPESTATUS[0]} -ne 0 ]; then
+            print_error "Failed to delete remote branch"
+            print_info "You may need to delete it manually or run: git fetch --prune"
+        fi
+        
+        # Clean up stale remote-tracking branch
+        git fetch --prune origin >/dev/null 2>&1 || true
     fi
 
     print_success "Branch deleted: $branch_to_delete"
