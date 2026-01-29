@@ -88,6 +88,7 @@ case $subcommand in
     ship)
         # Get current branch
         current_branch=$(git branch --show-current)
+        original_branch="$current_branch"  # Remember where we started
 
         # Validate we're on a hotfix branch (check pattern first)
         if [[ ! "$current_branch" =~ ^hotfix/v ]]; then
@@ -154,6 +155,12 @@ case $subcommand in
         print_info "✓ Tagged as $hotfix_tag"
         print_info "✓ Production deployment will start automatically"
         print_warning "Delete hotfix branch when ready: gitflow branch delete $expected_branch"
+        
+        # Switch back to original branch if different from main
+        if [ "$original_branch" != "main" ]; then
+            print_info "Switching back to $original_branch..."
+            git checkout "$original_branch"
+        fi
         ;;
 
     *)

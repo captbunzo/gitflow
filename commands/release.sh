@@ -103,6 +103,7 @@ case $subcommand in
     rc)
         # Get current branch
         current_branch=$(git branch --show-current)
+        original_branch="$current_branch"  # Remember where we started
 
         # Validate we're on a release branch (check pattern first)
         if [[ ! "$current_branch" =~ ^release/v ]]; then
@@ -178,11 +179,18 @@ case $subcommand in
         print_success "RC tag created and pushed!"
         print_info "This will trigger deployment to UAT."
         print_info "Tag: $rc_tag"
+        
+        # Switch back to original branch if we changed branches
+        if [ "$original_branch" != "$current_branch" ]; then
+            print_info "Switching back to $original_branch..."
+            git checkout "$original_branch"
+        fi
         ;;
 
     ship)
         # Get current branch
         current_branch=$(git branch --show-current)
+        original_branch="$current_branch"  # Remember where we started
 
         # Validate we're on a release branch (check pattern first)
         if [[ ! "$current_branch" =~ ^release/v ]]; then
@@ -249,6 +257,12 @@ case $subcommand in
         print_info "✓ Tagged as $release_tag"
         print_info "✓ Production deployment will start automatically"
         print_warning "Delete release branch when ready: gitflow branch delete $expected_branch"
+        
+        # Switch back to original branch if different from main
+        if [ "$original_branch" != "main" ]; then
+            print_info "Switching back to $original_branch..."
+            git checkout "$original_branch"
+        fi
         ;;
 
     *)

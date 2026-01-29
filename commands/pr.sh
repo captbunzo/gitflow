@@ -123,6 +123,9 @@ case $subcommand in
         ;;
 
     merge)
+        # Remember where we started
+        original_branch=$(git branch --show-current)
+        
         # Validate PR exists
         if ! gh pr view "$branch_name" &>/dev/null; then
             print_error "No PR found for branch: $branch_name"
@@ -136,9 +139,16 @@ case $subcommand in
         print_info "Merging PR #$pr_number..."
         gh pr merge "$pr_number" --squash --delete-branch
 
-        # Switch back to develop
+        # Switch to develop to pull latest
         print_info "Switching to develop..."
         git checkout develop
+        
+        # Switch back to original branch if it wasn't the branch being merged
+        # and it wasn't already develop
+        if [ "$original_branch" != "$branch_name" ] && [ "$original_branch" != "develop" ]; then
+            print_info "Switching back to $original_branch..."
+            git checkout "$original_branch"
+        fi
 
         print_success "PR merged and branch cleaned up!"
         print_info "Run 'git pull' to update your local develop branch"

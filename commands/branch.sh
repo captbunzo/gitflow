@@ -161,6 +161,7 @@ create_branch() {
             print_info "Bumping version to $branch_value..."
             if ! bump_version "$branch_value"; then
                 print_error "Failed to bump version"
+                print_info "Cleaning up and returning to $expected_base..."
                 git checkout "$expected_base"
                 git branch -D "$full_branch_name"
                 exit 1
