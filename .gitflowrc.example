@@ -1,9 +1,10 @@
 # GitFlow Configuration
 # Copy this file to .gitflowrc in your repository root to customize behavior
 
-# Package manager to use for versioning (npm, yarn, pnpm, bun, or none)
+# Package manager to use for versioning (auto, npm, yarn, pnpm, bun, or none)
+# 'auto' will detect based on lock files
 # Set to 'none' for non-Node.js projects
-PACKAGE_MANAGER=bun
+PACKAGE_MANAGER=auto
 
 # Enable semantic versioning for release/hotfix branches
 # Set to false for projects that don't use package.json versioning

@@ -1,6 +1,9 @@
-# GitFlow Automation
+# 🚀 GitFlow Automation
 
-A powerful command-line tool for automating GitFlow workflows with built-in safety checks and intelligent branch management.
+> A powerful command-line tool for automating GitFlow workflows with built-in safety checks and intelligent branch management.
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Shell: Bash](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
 
 ## Features
 
@@ -356,9 +359,10 @@ cp .gitflowrc.example .gitflowrc
 ### Configuration Options
 
 ```bash
-# Package manager for versioning (npm, yarn, pnpm, bun, or none)
+# Package manager for versioning (auto, npm, yarn, pnpm, bun, or none)
+# 'auto' detects based on lock files (default)
 # Set to 'none' for non-Node.js projects
-PACKAGE_MANAGER=npm
+PACKAGE_MANAGER=auto
 
 # Enable semantic versioning for release/hotfix branches
 # When true, creates version bump commits in package.json

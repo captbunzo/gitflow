@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
 # Bash completion for gitflow command
+# Provides tab completion for all commands, subcommands, and arguments
 
 _gitflow_complete() {
     local cur prev words cword
     _init_completion || return
 
-    # Top-level commands
+    # Top-level commands (full names only)
     local commands="branch pr release hotfix tag status help"
 
     # Subcommands for each command
