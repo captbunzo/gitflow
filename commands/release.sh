@@ -140,6 +140,50 @@ case $subcommand in
             exit 1
         fi
 
+        # Ensure we're tagging the latest code from origin
+        print_info "Checking if local branch is up to date..."
+        git fetch origin "$expected_branch" --quiet
+
+        local_hash=$(git rev-parse HEAD)
+        remote_hash=$(git rev-parse "origin/$expected_branch" 2>/dev/null || echo "")
+
+        if [ -z "$remote_hash" ]; then
+            print_error "Remote branch origin/$expected_branch does not exist"
+            print_info "Push the branch first: git push -u origin $expected_branch"
+            exit 1
+        fi
+
+        if [ "$local_hash" != "$remote_hash" ]; then
+            # Check if local is behind remote
+            if git merge-base --is-ancestor "$local_hash" "$remote_hash"; then
+                print_error "Local branch is behind remote"
+                print_info "Your local $expected_branch is out of date."
+                echo
+                read -rp "Pull latest changes? [y/N]: " pull_confirm
+                if [[ "$pull_confirm" =~ ^[Yy]$ ]]; then
+                    print_info "Pulling latest changes..."
+                    git pull origin "$expected_branch" --ff-only
+                    print_success "Branch updated to latest"
+                else
+                    print_error "Cannot create RC with stale branch"
+                    print_info "Pull manually: git pull origin $expected_branch"
+                    exit 1
+                fi
+            # Check if remote is behind local (unpushed commits)
+            elif git merge-base --is-ancestor "$remote_hash" "$local_hash"; then
+                print_error "You have unpushed commits on $expected_branch"
+                print_info "Push them first: git push origin $expected_branch"
+                exit 1
+            else
+                # Branches have diverged
+                print_error "Local and remote branches have diverged"
+                print_info "Resolve the conflict manually before creating an RC"
+                exit 1
+            fi
+        else
+            print_success "Local branch is up to date"
+        fi
+
         # Auto-detect the next RC number based on existing tags
         # Find all existing RC tags for this version and get the highest number
         existing_rcs=$(git tag -l "v${version}-rc.*" 2>/dev/null | sed "s/v${version}-rc\.//" | sort -n | tail -1)
@@ -228,16 +272,55 @@ case $subcommand in
 
         # Fetch latest from remotes before merging
         print_info "Fetching latest from origin..."
-        git fetch origin main develop --quiet
+        git fetch origin main develop "$expected_branch" --quiet
+
+        # Ensure release branch is up to date before shipping
+        print_info "Checking if release branch is up to date..."
+        local_hash=$(git rev-parse HEAD)
+        remote_hash=$(git rev-parse "origin/$expected_branch" 2>/dev/null || echo "")
+
+        if [ -z "$remote_hash" ]; then
+            print_error "Remote branch origin/$expected_branch does not exist"
+            exit 1
+        fi
+
+        if [ "$local_hash" != "$remote_hash" ]; then
+            # Check if local is behind remote
+            if git merge-base --is-ancestor "$local_hash" "$remote_hash"; then
+                print_error "Local branch is behind remote"
+                print_info "Your local $expected_branch is out of date."
+                echo
+                read -rp "Pull latest changes? [y/N]: " pull_confirm
+                if [[ "$pull_confirm" =~ ^[Yy]$ ]]; then
+                    print_info "Pulling latest changes..."
+                    git pull origin "$expected_branch" --ff-only
+                    print_success "Branch updated to latest"
+                else
+                    print_error "Cannot ship with stale branch"
+                    print_info "Pull manually: git pull origin $expected_branch"
+                    exit 1
+                fi
+            # Check if remote is behind local (unpushed commits)
+            elif git merge-base --is-ancestor "$remote_hash" "$local_hash"; then
+                print_error "You have unpushed commits on $expected_branch"
+                print_info "Push them first: git push origin $expected_branch"
+                exit 1
+            else
+                print_error "Local and remote branches have diverged"
+                exit 1
+            fi
+        else
+            print_success "Release branch is up to date"
+        fi
 
         print_info "Merging release branch to main..."
         git checkout main
-        git merge --no-ff "$expected_branch"
+        git merge --no-ff "$expected_branch" -m "Merge release $version to main"
         git push origin main
 
         print_info "Merging release branch back to develop..."
         git checkout develop
-        git merge --no-ff "$expected_branch"
+        git merge --no-ff "$expected_branch" -m "Merge release $version back to develop"
         git push origin develop
 
         # Check if tag already exists

@@ -1,6 +1,15 @@
 # GitFlow Automation
 
-Command-line tool for automating GitFlow workflows.
+A powerful command-line tool for automating GitFlow workflows with built-in safety checks and intelligent branch management.
+
+## Features
+
+- ✅ **Interactive & CLI modes** - Use menus or direct commands
+- ✅ **Safety checks** - Verifies branches are up-to-date before tagging/shipping
+- ✅ **Smart branch switching** - Returns you to your original branch after operations
+- ✅ **Tab completion** - Bash completion for all commands
+- ✅ **Flexible versioning** - Works with or without package.json
+- ✅ **Single-letter aliases** - Fast shortcuts for all commands
 
 ## Installation
 
@@ -49,24 +58,34 @@ Create branches for different workflow types:
 
 ```bash
 # Feature branch (full command)
-gitflow branch feature add-new-command
-gitflow branch feature user-authentication
+gitflow branch create feature add-new-command
+gitflow branch create feature user-authentication
 
 # Feature branch (alias)
-gitflow b feature add-new-command
+gitflow b create feature add-new-command
 
 # Fix branch
-gitflow branch fix memory-leak
-gitflow b fix correct-typo
+gitflow branch create fix memory-leak
+gitflow b create fix correct-typo
 
 # Release branch
-gitflow branch release 1.2.0
-gitflow b release 1.2.0
+gitflow branch create release 1.2.0
+gitflow b create release 1.2.0
 
-# Hotfix branch (version-based, matches release pattern)
-gitflow branch hotfix 1.2.1
-gitflow b hotfix 1.2.1
+# Hotfix branch
+gitflow branch create hotfix 1.2.1
+gitflow b create hotfix 1.2.1
+
+# Delete branches (interactive)
+gitflow branch delete
+gitflow b delete
+
+# Delete specific branch
+gitflow branch delete feature/my-feature
+gitflow b delete feature/my-feature
 ```
+
+**Note:** Creating release/hotfix branches automatically pushes them to origin and triggers Staging deployment.
 
 ### Pull Request Workflow
 
@@ -92,6 +111,8 @@ gitflow pr merge feature/my-feature
 gitflow p merge feature/my-feature
 ```
 
+**Note:** The `merge` command deletes the remote branch and returns you to your original branch if you weren't on the merged branch.
+
 ### Release Workflow
 
 Manage releases from develop → staging → UAT → production:
@@ -109,6 +130,12 @@ gitflow release ship 1.2.0
 gitflow r ship 1.2.0
 ```
 
+**Safety Features:**
+- Automatically checks if your local branch is up-to-date with remote
+- Prompts you to pull if behind remote before tagging/shipping
+- Prevents tagging/shipping stale code
+- Returns you to your original branch after completion
+
 ### Hotfix Workflow
 
 Manage hotfixes from main → staging → UAT → production:
@@ -121,9 +148,15 @@ gitflow hotfix ship 1.2.1
 gitflow h ship 1.2.1
 ```
 
+**Safety Features:**
+- Automatically checks if your local branch is up-to-date with remote
+- Prompts you to pull if behind remote before shipping
+- Prevents shipping stale code
+- Returns you to your original branch after completion
+
 ### Production Tagging
 
-Tag production releases:
+Tag production releases (requires you to be on main branch):
 
 ```bash
 # Tag production release (full command)
@@ -132,6 +165,8 @@ gitflow tag 1.2.0
 # Tag production release (alias)
 gitflow t 1.2.0
 ```
+
+**Note:** This command requires you to be on `main` and your branch must be up-to-date with origin. This strict requirement is intentional for production safety.
 
 ### Status
 
@@ -194,16 +229,19 @@ Utilities:
 
 ```bash
 # 1. Create feature branch from develop (with alias)
-gitflow b feature add-new-feature
+gitflow b create feature add-new-feature
 
 # 2. Make changes, commit
 git add .
 git commit -m "Add new feature"
 
-# 3. Create PR to develop (with alias)
+# 3. Push changes
+git push
+
+# 4. Create PR to develop (with alias)
 gitflow p create
 
-# 4. After review, merge PR (with alias)
+# 5. After review, merge PR (with alias)
 gitflow p merge
 ```
 
@@ -211,33 +249,73 @@ gitflow p merge
 
 ```bash
 # 1. Create release branch from develop (with alias)
-gitflow b release 1.2.0
+gitflow b create release 1.2.0
 
 # 2. Branch is auto-pushed (triggers Staging deployment)
 # No manual push needed!
 
-# 3. Create RC tag (triggers UAT deployment) (with alias)
+# 3. Test on staging, make fixes if needed, then create RC tag (triggers UAT deployment)
 gitflow r rc 1.2.0
 
-# 4. After UAT approval, ship release (with alias)
+# 4. If issues found, create another RC
+gitflow r rc 1.2.0 --rc 2
+
+# 5. After UAT approval, ship release (merges to main & develop, creates tag)
 gitflow r ship 1.2.0
 ```
+
+**Safety checks during RC creation and shipping:**
+- Verifies local branch matches remote
+- Prompts to pull if out of sync
+- Prevents tagging/shipping stale code
+- Returns to original branch when done
 
 ### Hotfix Cycle
 
 ```bash
 # 1. Create hotfix branch from main (with alias)
-gitflow b hotfix 1.2.1
+gitflow b create hotfix 1.2.1
 
 # 2. Branch is auto-pushed (triggers Staging deployment)
-# Make your fix, commit
+# Make your fix, commit, push
 git add .
 git commit -m "Fix critical bug"
 git push
 
-# 3. After testing, ship hotfix (with alias)
+# 3. After testing on staging, ship hotfix
 gitflow h ship 1.2.1
 ```
+
+**Safety checks during shipping:**
+- Verifies local branch matches remote
+- Prompts to pull if out of sync  
+- Prevents shipping stale code
+- Returns to original branch when done
+
+## Safety Features
+
+GitFlow Automation includes multiple safety checks to prevent common mistakes:
+
+### Branch Synchronization
+- **Before tagging or shipping**: Automatically fetches and compares local/remote branches
+- **If out of sync**: Prompts you to pull changes before proceeding
+- **If diverged**: Stops and asks you to resolve conflicts manually
+- **If unpushed commits**: Reminds you to push before continuing
+
+### Smart Branch Switching
+- **Automatic return**: Commands that temporarily switch branches will return you to your original branch
+- **Clean working tree**: Checks for uncommitted changes before switching branches
+- **Stale tracking refs**: Automatically cleans up when deleting branches
+
+### Production Protection
+- **Tag command**: Requires you to be on `main` branch (intentional "speed bump" for production)
+- **Version validation**: Ensures semantic versioning format (e.g., 1.2.0)
+- **Duplicate prevention**: Checks if tags already exist before creating them
+
+### Error Handling
+- **Graceful failures**: Clear error messages with actionable next steps
+- **Remote branch cleanup**: Handles already-deleted remote branches gracefully
+- **Uncommitted changes**: Prevents branch switches when you have uncommitted work
 
 ## File Structure
 
@@ -269,8 +347,113 @@ gitflow/
 
 ## Configuration
 
-Copy `.gitflowrc.example` to `.gitflowrc` in your repository root to customize:
+Create a `.gitflowrc` file in your repository root to customize behavior. Copy from the example:
 
-- Package manager (npm/yarn/pnpm/bun/none)
-- Enable/disable versioning
-- Branch naming conventions
+```bash
+cp .gitflowrc.example .gitflowrc
+```
+
+### Configuration Options
+
+```bash
+# Package manager for versioning (npm, yarn, pnpm, bun, or none)
+# Set to 'none' for non-Node.js projects
+PACKAGE_MANAGER=npm
+
+# Enable semantic versioning for release/hotfix branches
+# When true, creates version bump commits in package.json
+# Set to false for projects that don't use package.json versioning
+ENABLE_VERSIONING=true
+
+# Branch prefixes (optional, defaults shown)
+FEATURE_PREFIX=feature
+FIX_PREFIX=fix
+RELEASE_PREFIX=release
+HOTFIX_PREFIX=hotfix
+
+# Base branches (optional, defaults shown)
+DEVELOP_BRANCH=develop
+MAIN_BRANCH=main
+```
+
+### Non-Node.js Projects
+
+For projects without package.json (Go, Python, Java, etc.):
+
+```bash
+# In your .gitflowrc
+PACKAGE_MANAGER=none
+ENABLE_VERSIONING=false
+```
+
+This disables version bumping but keeps all other GitFlow features.
+
+## Troubleshooting
+
+### "Not inside a git repository"
+Make sure you're running commands from within a git repository. GitFlow automatically changes to the repository root.
+
+### "Missing required commands"
+Install the required dependencies:
+- **Git**: `sudo apt-get install git` (Linux) or `brew install git` (macOS)
+- **GitHub CLI**: `brew install gh` or [download from GitHub](https://cli.github.com/)
+- **jq** (optional): `brew install jq` or `sudo apt-get install jq`
+
+### "Local branch is behind remote"
+When you see this, GitFlow detected your local branch is out of date. Accept the prompt to pull, or manually run:
+```bash
+git pull origin <branch-name>
+```
+
+### "Branches have diverged"
+Your local and remote branches have conflicting commits. Resolve manually:
+```bash
+git fetch origin
+git status
+# Resolve conflicts, then:
+git merge origin/<branch-name>
+# or
+git rebase origin/<branch-name>
+```
+
+### "Remote ref does not exist" when deleting
+This means the remote branch was already deleted (common if deleted via GitHub UI). GitFlow now handles this gracefully and continues with local cleanup.
+
+### Tab completion not working
+Reload your shell configuration:
+```bash
+source ~/.bashrc  # or ~/.zshrc for zsh
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+### Development
+
+The project structure is modular:
+- `gitflow.sh` - Main entry point and menu system
+- `commands/*.sh` - Individual command implementations
+- `lib/common.sh` - Shared utilities and helpers
+- `gitflow-completion.bash` - Bash completion script
+
+### Testing
+
+Test changes locally before submitting:
+```bash
+# Test in a git repository
+cd /path/to/test/repo
+/path/to/gitflow/gitflow.sh <command>
+```
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Created by [@captbunzo](https://github.com/captbunzo)
+
+## Acknowledgments
+
+Built to streamline GitFlow workflows with safety and automation in mind.
