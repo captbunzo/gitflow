@@ -71,7 +71,11 @@ gitflow b create feature add-new-command
 gitflow branch create fix memory-leak
 gitflow b create fix correct-typo
 
-# Release branch
+# Release branch (interactive version selection)
+gitflow branch create release
+gitflow b create release
+
+# Release branch (direct version)
 gitflow branch create release 1.2.0
 gitflow b create release 1.2.0
 
@@ -89,6 +93,27 @@ gitflow b delete feature/my-feature
 ```
 
 **Note:** Creating release/hotfix branches automatically pushes them to origin and triggers Staging deployment.
+
+#### 📦 Smart Version Selection for Releases
+
+When creating a release branch without specifying a version, an interactive menu is displayed based on the current version in `package.json`:
+
+```
+Current version: 1.2.3
+
+Select version for new release:
+  1) 1.2.4 (patch - bug fixes)
+  2) 1.3.0 (minor - new features)
+  3) 2.0.0 (major - breaking changes)
+  C) Custom version
+
+Enter choice:
+```
+
+This follows [Semantic Versioning](https://semver.org/):
+- **Patch** (1.2.3 → 1.2.4): Bug fixes and minor changes
+- **Minor** (1.2.3 → 1.3.0): New features, backward compatible
+- **Major** (1.2.3 → 2.0.0): Breaking changes
 
 ### Pull Request Workflow
 
@@ -251,7 +276,15 @@ gitflow p merge
 ### Release Cycle
 
 ```bash
-# 1. Create release branch from develop (with alias)
+# 1. Create release branch from develop (with interactive version selection)
+gitflow b create release
+# Choose from:
+#   1) Patch version (e.g., 1.2.4) - for bug fixes
+#   2) Minor version (e.g., 1.3.0) - for new features
+#   3) Major version (e.g., 2.0.0) - for breaking changes
+#   C) Custom version
+
+# Or specify version directly
 gitflow b create release 1.2.0
 
 # 2. Branch is auto-pushed (triggers Staging deployment)

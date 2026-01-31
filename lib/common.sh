@@ -170,6 +170,30 @@ validate_version() {
     return 0
 }
 
+# Increment patch version (1.2.3 -> 1.2.4)
+increment_patch() {
+    local version="$1"
+    local major minor patch
+    IFS='.' read -r major minor patch <<< "$version"
+    echo "${major}.${minor}.$((patch + 1))"
+}
+
+# Increment minor version (1.2.3 -> 1.3.0)
+increment_minor() {
+    local version="$1"
+    local major minor patch
+    IFS='.' read -r major minor patch <<< "$version"
+    echo "${major}.$((minor + 1)).0"
+}
+
+# Increment major version (1.2.3 -> 2.0.0)
+increment_major() {
+    local version="$1"
+    local major minor patch
+    IFS='.' read -r major minor patch <<< "$version"
+    echo "$((major + 1)).0.0"
+}
+
 # Find and change to repository root
 ensure_repo_root() {
     # Check if we're in a git repository

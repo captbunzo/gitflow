@@ -31,7 +31,8 @@ EXAMPLES:
   # Create branches
   branch.sh create feature add-new-command
   branch.sh create fix memory-leak
-  branch.sh create release 1.2.0
+  branch.sh create release          # Interactive version selection
+  branch.sh create release 1.2.0    # Direct version
   branch.sh create hotfix 1.2.1
 
   # Delete branches
@@ -105,7 +106,36 @@ create_branch() {
     elif [[ "$branch_type" == "release" || "$branch_type" == "hotfix" ]]; then
         if [ -z "$branch_value" ]; then
             if [ "$branch_type" == "release" ]; then
-                read -rp "Enter version number (e.g., 1.2.0): " branch_value
+                # Get the current version from package.json
+                current_version=$(get_current_version)
+                print_info "Current version: $current_version"
+                echo ""
+                
+                # Calculate version suggestions
+                patch_version=$(increment_patch "$current_version")
+                minor_version=$(increment_minor "$current_version")
+                major_version=$(increment_major "$current_version")
+                
+                echo -e "${CYAN}Select version for new release:${NC}"
+                echo -e "  ${CYAN}1${NC}) $patch_version (patch - bug fixes)"
+                echo -e "  ${CYAN}2${NC}) $minor_version (minor - new features)"
+                echo -e "  ${CYAN}3${NC}) $major_version (major - breaking changes)"
+                echo -e "  ${CYAN}C${NC}) Custom version"
+                echo ""
+                read -rp "Enter choice: " version_choice
+                
+                case "$version_choice" in
+                    1) branch_value="$patch_version" ;;
+                    2) branch_value="$minor_version" ;;
+                    3) branch_value="$major_version" ;;
+                    C|c) 
+                        read -rp "Enter custom version (e.g., 1.2.0): " branch_value
+                        ;;
+                    *) 
+                        print_error "Invalid choice"
+                        exit 1
+                        ;;
+                esac
             else
                 current_version=$(get_current_version)
                 print_info "Current version: $current_version"
