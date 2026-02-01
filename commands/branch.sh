@@ -89,8 +89,21 @@ create_branch() {
     if [ "$current_branch" != "$expected_base" ]; then
         print_error "Cannot create $branch_type branch from '$current_branch'"
         print_info "You must be on '$expected_base' to create a $branch_type branch"
-        print_info "Switch to $expected_base first: git checkout $expected_base"
-        exit 1
+        echo
+        read -rp "Would you like to switch to '$expected_base' now? (y/N): " switch_choice
+        
+        if [[ "$switch_choice" =~ ^[Yy]$ ]]; then
+            print_info "Switching to $expected_base..."
+            git checkout "$expected_base"
+            git pull origin "$expected_base"
+            print_success "Switched to $expected_base branch"
+            
+            # Update current branch for the rest of the script
+            current_branch="$expected_base"
+        else
+            print_info "Staying on current branch"
+            exit 1
+        fi
     fi
 
     # Prompt for branch name/version

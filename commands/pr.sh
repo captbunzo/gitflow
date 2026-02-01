@@ -110,6 +110,14 @@ case $subcommand in
             exit 1
         fi
 
+        # Check if there are commits to create a PR from
+        git fetch origin develop --quiet
+        if ! git rev-list --count origin/develop.."$branch_name" | grep -q '^[1-9]'; then
+            print_error "No commits found between origin/develop and $branch_name"
+            print_info "Make some changes and commit them before creating a PR"
+            exit 1
+        fi
+
         # Push branch
         print_info "Pushing branch to origin..."
         git push -u origin "$branch_name"
