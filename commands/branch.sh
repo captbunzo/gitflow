@@ -95,8 +95,16 @@ create_branch() {
         if [[ "$switch_choice" =~ ^[Yy]$ ]]; then
             print_info "Switching to $expected_base..."
             git checkout "$expected_base"
-            git pull origin "$expected_base"
-            print_success "Switched to $expected_base branch"
+            
+            # Ask permission before pulling
+            echo
+            read -rp "Pull latest changes from origin/$expected_base? (y/N): " pull_choice
+            if [[ "$pull_choice" =~ ^[Yy]$ ]]; then
+                git pull origin "$expected_base"
+                print_success "Switched to $expected_base and pulled latest changes"
+            else
+                print_success "Switched to $expected_base branch (without pulling)"
+            fi
             
             # Update current branch for the rest of the script
             current_branch="$expected_base"
