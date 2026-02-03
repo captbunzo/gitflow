@@ -184,6 +184,11 @@ case $subcommand in
             print_success "Local branch is up to date"
         fi
 
+        # Build Once Strategy: The version was already set when the release branch
+        # was created. We simply tag the current commit - no package.json modification.
+        # This ensures the UAT deployment uses the exact same SHA that was built for
+        # Staging, preventing race conditions and ensuring build consistency.
+        
         # Auto-detect the next RC number based on existing tags
         # Find all existing RC tags for this version and get the highest number
         existing_rcs=$(git tag -l "v${version}-rc.*" 2>/dev/null | sed "s/v${version}-rc\.//" | sort -n | tail -1)
@@ -313,6 +318,11 @@ case $subcommand in
             print_success "Release branch is up to date"
         fi
 
+        # Build Once Strategy: No version changes are made during shipping.
+        # The version was set when the release branch was created, so main will
+        # receive the exact same package.json (and SHA) that was tested in UAT.
+        # This ensures Production deploys the identical artifact that passed UAT.
+        
         print_info "Merging release branch to main..."
         git checkout main
         
@@ -348,8 +358,8 @@ case $subcommand in
         git checkout develop
         
         # Check if develop is up to date
-        local develop_local=$(git rev-parse HEAD)
-        local develop_remote=$(git rev-parse "origin/develop")
+        develop_local=$(git rev-parse HEAD)
+        develop_remote=$(git rev-parse "origin/develop")
         if [ "$develop_local" != "$develop_remote" ]; then
             if git merge-base --is-ancestor "$develop_local" "$develop_remote"; then
                 print_warning "Local develop is behind remote"

@@ -207,21 +207,22 @@ create_branch() {
         print_info "Creating $branch_type branch: $full_branch_name"
         git checkout -b "$full_branch_name"
 
-        # Only bump version if versioning is enabled
-        if [ "$ENABLE_VERSIONING" = true ]; then
-            print_info "Bumping version to $branch_value..."
-            if ! bump_version "$branch_value"; then
-                print_error "Failed to bump version"
-                print_info "Cleaning up and returning to $expected_base..."
-                git checkout "$expected_base"
-                git branch -D "$full_branch_name"
-                exit 1
-            fi
-
-            print_info "Committing version bump..."
-            git add package.json
-            git commit -m "chore: bump version to $branch_value"
+        # CRITICAL: Bump version immediately as first commit on the branch
+        # This implements the "Build Once" strategy - the version is set at branch
+        # creation time, so all subsequent builds (Staging, UAT, Production) use
+        # the same SHA with the same version metadata.
+        print_info "Bumping version to $branch_value..."
+        if ! bump_version "$branch_value"; then
+            print_error "Failed to bump version"
+            print_info "Cleaning up and returning to $expected_base..."
+            git checkout "$expected_base"
+            git branch -D "$full_branch_name"
+            exit 1
         fi
+
+        print_info "Committing version bump..."
+        git add package.json
+        git commit -m "chore: bump version to $branch_value"
 
         print_info "Pushing $branch_type branch to origin..."
         git push -u origin "$full_branch_name"
