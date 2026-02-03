@@ -315,11 +315,63 @@ case $subcommand in
 
         print_info "Merging release branch to main..."
         git checkout main
+        
+        # Check if main is up to date
+        main_local=$(git rev-parse HEAD)
+        main_remote=$(git rev-parse "origin/main")
+        if [ "$main_local" != "$main_remote" ]; then
+            if git merge-base --is-ancestor "$main_local" "$main_remote"; then
+                print_warning "Local main is behind remote"
+                echo
+                read -rp "Pull latest changes to main? [y/N]: " pull_main
+                if [[ "$pull_main" =~ ^[Yy]$ ]]; then
+                    git pull origin main --ff-only
+                    print_success "Main updated"
+                else
+                    print_error "Cannot ship with stale main branch"
+                    exit 1
+                fi
+            elif git merge-base --is-ancestor "$main_remote" "$main_local"; then
+                print_error "Main has unpushed commits"
+                print_info "Push them first: git push origin main"
+                exit 1
+            else
+                print_error "Main has diverged from remote"
+                exit 1
+            fi
+        fi
+        
         git merge --no-ff "$expected_branch" -m "Merge release $version to main"
         git push origin main
 
         print_info "Merging release branch back to develop..."
         git checkout develop
+        
+        # Check if develop is up to date
+        local develop_local=$(git rev-parse HEAD)
+        local develop_remote=$(git rev-parse "origin/develop")
+        if [ "$develop_local" != "$develop_remote" ]; then
+            if git merge-base --is-ancestor "$develop_local" "$develop_remote"; then
+                print_warning "Local develop is behind remote"
+                echo
+                read -rp "Pull latest changes to develop? [y/N]: " pull_develop
+                if [[ "$pull_develop" =~ ^[Yy]$ ]]; then
+                    git pull origin develop --ff-only
+                    print_success "Develop updated"
+                else
+                    print_error "Cannot ship with stale develop branch"
+                    exit 1
+                fi
+            elif git merge-base --is-ancestor "$develop_remote" "$develop_local"; then
+                print_error "Develop has unpushed commits"
+                print_info "Push them first: git push origin develop"
+                exit 1
+            else
+                print_error "Develop has diverged from remote"
+                exit 1
+            fi
+        fi
+        
         git merge --no-ff "$expected_branch" -m "Merge release $version back to develop"
         git push origin develop
 
