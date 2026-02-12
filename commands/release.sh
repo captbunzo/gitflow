@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 
-# Manage release workflow: create RC tags and ship to production
+# ==============================================================================
+# GitFlow Automation - Release Management
+# ==============================================================================
+#
+# File: commands/release.sh
+# Description: Manage the release workflow from UAT testing to production
+#              deployment. Creates release candidate tags and ships releases.
+#
+# Subcommands:
+#   - rc:   Create a release candidate tag for UAT deployment
+#   - ship: Merge release to main/develop and deploy to production
+#
+# Build Once Strategy:
+#   This script does NOT modify package.json. The version is locked when
+#   the release branch is created, ensuring UAT and Production deploy the
+#   identical artifact (same SHA). Tags simply point to existing commits.
+#
+# ==============================================================================
 
 set -euo pipefail
 
@@ -323,6 +340,12 @@ case $subcommand in
         # receive the exact same package.json (and SHA) that was tested in UAT.
         # This ensures Production deploys the identical artifact that passed UAT.
         
+        # CRITICAL: Capture the SHA of the release branch BEFORE merging.
+        # The --no-ff merge will create a new merge commit, but we want to tag
+        # the actual code that was tested in UAT, not the merge commit.
+        release_sha=$(git rev-parse "$expected_branch")
+        print_info "Release SHA to be tagged: $release_sha"
+        
         print_info "Merging release branch to main..."
         git checkout main
         
@@ -392,9 +415,9 @@ case $subcommand in
             exit 1
         fi
 
-        print_info "Creating production tag: $release_tag"
-        git checkout main
-        git tag "$release_tag"
+        # Tag the specific SHA that was tested in UAT, not the merge commit
+        print_info "Creating production tag: $release_tag (pointing to $release_sha)"
+        git tag "$release_tag" "$release_sha"
         git push origin "$release_tag"
 
         print_success "Release shipped to production!"

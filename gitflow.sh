@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 
+# ==============================================================================
 # GitFlow Automation - Main Entry Point
+# ==============================================================================
+#
+# File: gitflow.sh
+# Description: Main command-line interface for GitFlow automation.
+#              Routes commands to appropriate subcommand scripts.
+#
+# Usage: gitflow.sh [COMMAND] [SUBCOMMAND] [OPTIONS]
+#
+# Commands:
+#   - branch:  Create/delete feature, fix, release, and hotfix branches
+#   - pr:      Create and merge pull requests
+#   - release: Manage release workflow (RC tags, shipping to production)
+#   - hotfix:  Ship hotfixes directly to production
+#   - status:  View repository status and open PRs
+#
+# ==============================================================================
 
 set -euo pipefail
 
@@ -22,7 +39,6 @@ COMMANDS:
   p, pr SUBCOMMAND [OPTIONS]       Manage pull requests (create, merge)
   r, release SUBCOMMAND [OPTIONS]  Manage releases (rc, ship)
   h, hotfix SUBCOMMAND [OPTIONS]   Manage hotfixes (ship)
-  t, tag [VERSION]                 Tag production release
   s, status                        View git status and open PRs
   ?, help                          Show this help message
 
@@ -104,11 +120,6 @@ execute_cli_command() {
         # Status
         s|status|-status|--status)
             bash "$SCRIPT_DIR/commands/status.sh" "$@"
-            ;;
-
-        # Tag
-        t|tag|-tag|--tag)
-            bash "$SCRIPT_DIR/commands/tag.sh" "$@"
             ;;
 
         # Help

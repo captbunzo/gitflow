@@ -1,6 +1,24 @@
 #!/usr/bin/env bash
 
-# Manage branches: create and delete for all workflow types
+# ==============================================================================
+# GitFlow Automation - Branch Management
+# ==============================================================================
+#
+# File: commands/branch.sh
+# Description: Create and delete branches for feature, fix, release, and hotfix
+#              workflows. Implements the "Build Once" strategy by setting
+#              version at branch creation time.
+#
+# Subcommands:
+#   - create: Create a new branch (feature, fix, release, hotfix)
+#   - delete: Delete an existing branch with interactive selection
+#
+# Build Once Strategy:
+#   For release/hotfix branches, the version is bumped in package.json
+#   immediately upon branch creation, ensuring all subsequent builds
+#   (Staging, UAT, Production) use the same SHA with identical metadata.
+#
+# ==============================================================================
 
 set -euo pipefail
 

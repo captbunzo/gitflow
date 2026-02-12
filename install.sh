@@ -41,23 +41,26 @@ fi
 
 print_info "Detected shell config: $SHELL_RC"
 
-# Check if alias already exists
+# Check if aliases already exist
 if grep -q "alias gitflow=" "$SHELL_RC" 2>/dev/null; then
-    print_info "Gitflow alias already exists, updating..."
-    # Remove old alias
+    print_info "Gitflow aliases already exist, updating..."
+    # Remove old aliases
     if [[ "$OSTYPE" == "darwin"* ]]; then
         sed -i '' '/alias gitflow=/d' "$SHELL_RC"
+        sed -i '' '/alias gf=/d' "$SHELL_RC"
     else
         sed -i '/alias gitflow=/d' "$SHELL_RC"
+        sed -i '/alias gf=/d' "$SHELL_RC"
     fi
 fi
 
-# Add alias
+# Add aliases
 echo "" >> "$SHELL_RC"
 echo "# GitFlow automation" >> "$SHELL_RC"
 echo "alias gitflow='bash $GITFLOW_SCRIPT'" >> "$SHELL_RC"
+echo "alias gf='bash $GITFLOW_SCRIPT'" >> "$SHELL_RC"
 
-print_success "Added gitflow alias"
+print_success "Added gitflow and gf aliases"
 
 # Add bash completion
 if [ -n "${BASH_VERSION:-}" ]; then
@@ -77,4 +80,5 @@ echo ""
 print_info "Or open a new terminal session"
 echo ""
 print_info "Usage: gitflow [command] [options]"
+echo "  Or use the short alias: gf [command] [options]"
 echo "  Run 'gitflow help' for more information"

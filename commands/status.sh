@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 
-# View git status, version, and open PRs
+# ==============================================================================
+# GitFlow Automation - Repository Status
+# ==============================================================================
+#
+# File: commands/status.sh
+# Description: Display comprehensive repository status including current branch,
+#              version, recent commits, and open pull requests.
+#
+# Output:
+#   - Current branch and version
+#   - Recent commits on current branch
+#   - Open pull requests from GitHub
+#   - Git working tree status
+#
+# ==============================================================================
 
 set -euo pipefail
 

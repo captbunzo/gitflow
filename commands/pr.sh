@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 
-# Manage pull requests: create and merge
+# ==============================================================================
+# GitFlow Automation - Pull Request Management
+# ==============================================================================
+#
+# File: commands/pr.sh
+# Description: Create and merge pull requests for feature and fix branches.
+#              Integrates with GitHub CLI (gh) for PR operations.
+#
+# Subcommands:
+#   - create: Create a PR to merge current branch into develop
+#   - merge:  Merge and delete a PR, cleaning up local and remote branches
+#
+# Workflow:
+#   Feature and fix branches create PRs to develop. After approval and merge,
+#   branches are automatically cleaned up locally and remotely.
+#
+# ==============================================================================
 
 set -euo pipefail
 
@@ -143,23 +159,37 @@ case $subcommand in
         # Get PR number
         pr_number=$(gh pr view "$branch_name" --json number -q '.number')
 
-        # Merge PR
+        # Merge PR with full commit history (not squashed)
         print_info "Merging PR #$pr_number..."
-        gh pr merge "$pr_number" --squash --delete-branch
+        gh pr merge "$pr_number" --merge
 
-        # Switch to develop to pull latest
+        print_success "PR merged!"
+
+        # Switch to develop
+        echo
         print_info "Switching to develop..."
         git checkout develop
+
+        # Prompt to pull latest changes to develop
+        echo
+        read -rp "Pull latest changes to develop? [Y/n]: " pull_develop
+        if [[ ! "$pull_develop" =~ ^[Nn]$ ]]; then
+            print_info "Pulling latest changes..."
+            git pull origin develop --ff-only
+            print_success "Develop updated to latest"
+        else
+            print_warning "Skipped pulling develop. You may be out of sync with remote."
+        fi
         
         # Switch back to original branch if it wasn't the branch being merged
         # and it wasn't already develop
         if [ "$original_branch" != "$branch_name" ] && [ "$original_branch" != "develop" ]; then
+            echo
             print_info "Switching back to $original_branch..."
             git checkout "$original_branch"
         fi
 
-        print_success "PR merged and branch cleaned up!"
-        print_info "Run 'git pull' to update your local develop branch"
+        print_success "PR merged and cleaned up!"
         ;;
 
     *)

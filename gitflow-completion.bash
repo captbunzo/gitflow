@@ -120,3 +120,4 @@ _gitflow_complete() {
 
 # Register completion
 complete -F _gitflow_complete gitflow
+complete -F _gitflow_complete gf

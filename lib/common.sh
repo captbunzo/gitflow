@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 
-# Common utilities for GitFlow automation scripts
+# ==============================================================================
+# GitFlow Automation - Common Utilities
+# ==============================================================================
+#
+# File: lib/common.sh
+# Description: Shared functions and utilities used across all GitFlow commands.
+#              Provides version management, branch operations, output formatting,
+#              and configuration loading.
+#
+# Features:
+#   - Package manager detection (npm, yarn, pnpm, bun)
+#   - Semantic version validation and manipulation
+#   - Git repository helpers
+#   - Colorized output functions
+#   - Branch selection prompts
+#   - Configuration management
+#
+# ==============================================================================
 
 # Colors for output
 export RED='\033[0;31m'

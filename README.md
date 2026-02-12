@@ -370,7 +370,6 @@ gitflow/
     ├── pr.sh               # PR management (create, merge)
     ├── release.sh          # Release workflow (rc, ship)
     ├── hotfix.sh           # Hotfix workflow (ship)
-    ├── tag.sh              # Production tagging
     └── status.sh           # Status view
 ```
 
