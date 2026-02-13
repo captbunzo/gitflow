@@ -53,6 +53,10 @@ EXAMPLES:
   gitflow.sh h ship 1.2.1              # Ship hotfix (alias)
   gitflow.sh s                         # View status (alias)
 
+ALIAS:
+  You can use 'gf' instead of 'gitflow' for shorter commands.
+  Example: gf b create feature my-feature
+
 CONFIGURATION:
   Copy .gitflowrc.example to .gitflowrc in your repo root to customize:
   - Package manager (npm/yarn/pnpm/bun/none)

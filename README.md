@@ -24,19 +24,24 @@ cd /path/to/gitflow
 source ~/.bashrc  # or open a new terminal
 ```
 
-After installation, you can run `gitflow` from anywhere in the repository.
+After installation, you can run `gitflow` (or the short alias `gf`) from anywhere in the repository.
 
 ## Quick Start
 
 ```bash
 # Interactive menu
 gitflow
+# or use the short alias
+gf
 
 # Show help
 gitflow help
+# or
+gf help
 
 # Tab completion works for all commands
 gitflow <TAB>
+gf <TAB>
 ```
 
 ## Command Structure
@@ -51,7 +56,6 @@ All commands support both full names and single-letter aliases for faster typing
 | pr      | p     | Manage pull requests (create/merge)        |
 | release | r     | Manage releases (rc/ship)                  |
 | hotfix  | h     | Manage hotfixes (ship)                     |
-| tag     | t     | Tag production release                     |
 | status  | s     | View git status and open PRs               |
 | help    | ?     | Show help message                          |
 
@@ -166,7 +170,7 @@ gitflow r ship 1.2.0
 
 ### Hotfix Workflow
 
-Manage hotfixes from main → staging → UAT → production:
+Manage hotfixes from main → staging → production:
 
 ```bash
 # Ship hotfix (merge to main and develop, tag production) (full command)
@@ -181,20 +185,6 @@ gitflow h ship 1.2.1
 - Prompts you to pull if behind remote before shipping
 - Prevents shipping stale code
 - Returns you to your original branch after completion
-
-### Production Tagging
-
-Tag production releases (requires you to be on main branch):
-
-```bash
-# Tag production release (full command)
-gitflow tag 1.2.0
-
-# Tag production release (alias)
-gitflow t 1.2.0
-```
-
-**Note:** This command requires you to be on `main` and your branch must be up-to-date with origin. This strict requirement is intentional for production safety.
 
 ### Status
 
@@ -277,7 +267,7 @@ gitflow p merge
 
 ```bash
 # 1. Create release branch from develop (with interactive version selection)
-gitflow b create release
+gf b create release
 # Choose from:
 #   1) Patch version (e.g., 1.2.4) - for bug fixes
 #   2) Minor version (e.g., 1.3.0) - for new features
@@ -285,19 +275,19 @@ gitflow b create release
 #   C) Custom version
 
 # Or specify version directly
-gitflow b create release 1.2.0
+gf b create release 1.2.0
 
 # 2. Branch is auto-pushed (triggers Staging deployment)
 # No manual push needed!
 
-# 3. Test on staging, make fixes if needed, then create RC tag (triggers UAT deployment)
-gitflow r rc 1.2.0
+# 3. Test on staging, make fixes if needed, then create RC tag
+gf r rc 1.2.0
 
 # 4. If issues found, create another RC
-gitflow r rc 1.2.0 --rc 2
+gf r rc 1.2.0 --rc 2
 
-# 5. After UAT approval, ship release (merges to main & develop, creates tag)
-gitflow r ship 1.2.0
+# 5. After approval, ship release (merges to main & develop, creates production tag)
+gf r ship 1.2.0
 ```
 
 **Safety checks during RC creation and shipping:**
@@ -310,7 +300,7 @@ gitflow r ship 1.2.0
 
 ```bash
 # 1. Create hotfix branch from main (with alias)
-gitflow b create hotfix 1.2.1
+gf b create hotfix 1.2.1
 
 # 2. Branch is auto-pushed (triggers Staging deployment)
 # Make your fix, commit, push
@@ -318,8 +308,8 @@ git add .
 git commit -m "Fix critical bug"
 git push
 
-# 3. After testing on staging, ship hotfix
-gitflow h ship 1.2.1
+# 3. After testing on staging, ship hotfix (merges to main & develop, creates production tag)
+gf h ship 1.2.1
 ```
 
 **Safety checks during shipping:**

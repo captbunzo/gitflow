@@ -8,7 +8,7 @@ _gitflow_complete() {
     _init_completion || return
 
     # Top-level commands (full names only)
-    local commands="branch pr release hotfix tag status help"
+    local commands="branch pr release hotfix status help"
 
     # Subcommands for each command
     local branch_cmds="create delete feature fix release hotfix"
@@ -39,13 +39,6 @@ _gitflow_complete() {
                     ;;
                 hotfix|h)
                     COMPREPLY=($(compgen -W "$hotfix_cmds" -- "$cur"))
-                    ;;
-                tag|t)
-                    # Suggest current version from package.json if available
-                    if [ -f package.json ] && command -v jq &>/dev/null; then
-                        local version=$(jq -r '.version' package.json 2>/dev/null)
-                        [ -n "$version" ] && COMPREPLY=("$version")
-                    fi
                     ;;
             esac
             ;;
